@@ -16,7 +16,7 @@ type HashTableInterface interface {
 }
 
 type KeyValuePair struct {
-	Key   string
+	Key   interface{}
 	Value int
 }
 
@@ -40,7 +40,7 @@ func (h *HashTable) Init(numBuckets int) {
 	}
 }
 
-func (h *HashTable) Get(key string) (int, error) {
+func (h *HashTable) Get(key interface{}) (int, error) {
 	bucket := h.findBucket(key)
 
 	for e := bucket.Front(); e != nil; e = e.Next() {
@@ -57,7 +57,7 @@ func (h *HashTable) Put(kvp KeyValuePair) {
 	bucket.PushBack(kvp)
 }
 
-func (h *HashTable) Remove(key string) error {
+func (h *HashTable) Remove(key interface{}) error {
 	bucket := h.findBucket(key)
 	if bucket.Len() == 0 {
 		return fmt.Errorf(keyNotFoundError, key)
@@ -75,22 +75,20 @@ func (h *HashTable) Remove(key string) error {
 /*
 PRIVATE METHODS
 */
-func (h *HashTable) hash(key string) int {
+func (h *HashTable) hash(key interface{}) int {
 	// Todo: remove hash/fvn dep
 	hasher := fnv.New32a()
 	hasher.Write([]byte(fmt.Sprintf("%v", key)))
 	hash := hasher.Sum32()
 
 	// Mod to find location.
-	// msg := fmt.Sprintf("key %s size %d", key, h.size)
-	// fmt.Println(msg)
 	return int(hash) % h.size
 }
 
 /*
 HELPER METHODS
 */
-func (h *HashTable) findBucket(key string) *list.List {
+func (h *HashTable) findBucket(key interface{}) *list.List {
 	// Calculate bucket for a key.
 	bucketIndex := h.hash(key)
 	bucket := h.Buckets[bucketIndex]
@@ -101,5 +99,14 @@ func Example(s string) string {
 	return s
 }
 
-// TODO: Make generic
+func (h *HashTable) Print() {
+	for i, bucket := range h.Buckets {
+		fmt.Printf("Bucket %d:\n", i)
+		for e := bucket.Front(); e != nil; e = e.Next() {
+			pair := e.Value.(KeyValuePair)
+			fmt.Printf("\tKey: %v, Value: %d\n", pair.Key, pair.Value)
+		}
+	}
+}
+
 // TODO: Try diff hashing algos.

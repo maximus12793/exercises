@@ -27,4 +27,10 @@ func main() {
 		fmt.Println("2")
 		fmt.Println(err)
 	}
+
+	hashtable.Put(htl.KeyValuePair{Key: 111, Value: -3})
+	hashtable.Put(htl.KeyValuePair{Key: "foo", Value: 10})
+	hashtable.Put(htl.KeyValuePair{Key: "bar", Value: 20})
+	hashtable.Put(htl.KeyValuePair{Key: "baz", Value: 30})
+	hashtable.Print()
 }
