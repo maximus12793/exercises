@@ -1,0 +1,6 @@
+* **Array of lists:** Instead of using a linked list for each bucket, you can use an array of lists to store the keys and values that hash to each bucket. For example, you can use a slice of slices or a slice of arrays to store the keys and values, and use the built-in append function to add new elements to the list.
+
+* **Skip list:** A skip list is a data structure that combines elements of a linked list with a search tree, allowing you to perform efficient insert, delete, and search operations. You can use a skip list to implement a hash table by using the hash function to determine which bucket to insert the key-value pair into, and then using the skip list data structure to manage the elements within each bucket.
+
+* **Open addressing:** Open addressing is a technique where the keys and values are stored directly in the hash table array, rather than in a separate data structure. To handle collisions, you can use a probe sequence to determine where to place the key-value pair in the array. You can use open addressing to implement a hash table by using the hash function to determine which bucket to insert the key-value pair into, and then using the probe sequence to find an empty slot in the array to store the key-value pair.
+
