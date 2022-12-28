@@ -1,0 +1,15 @@
+# Ignore build artifacts
+/target/
+
+# Ignore Cargo registry files
+/Cargo.lock
+/Cargo.toml
+
+# Ignore editor files
+*.swp
+*~
+.DS_Store
+
+# Ignore Visual Studio Code files
+.vscode/
+*.code-workspace
