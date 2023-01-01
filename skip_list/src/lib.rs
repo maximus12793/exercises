@@ -1,4 +1,5 @@
 // Note: We are using <Box> for heap allocations out of the box.
+extern crate rand;
 
 // Bidirectional Node elem.
 #[derive(Clone)]
@@ -22,7 +23,9 @@ where
   max_size: usize,
 }
 
-impl<T: Eq + Ord + Default + Copy> SkipList<T>
+impl<T> SkipList<T>
+where
+    T: Eq + Ord + Default + Copy + Clone,
 {
     // Init method.
     fn new() -> Self {
@@ -55,30 +58,53 @@ impl<T: Eq + Ord + Default + Copy> SkipList<T>
 
     // Insert helper method.
     fn insert(&mut self, element: T) {
-        let mut new_node = Node {
-            element,
-            next: vec![],
-            prev: vec![],
-        };
-        let mut current_node = &mut self.head;
-        let mut level = self.height - 1;
-        while level >= 0 {
-            while let Some(ref mut next) = current_node.next[level] {
-                // Keep cycling until position hit.
-                if next.element < element {
-                    current_node = &mut next;
-                } else {
-                    break;
-                }
-            }
-            // Update the next and prev pointers to new node.
-            new_node.prev[level] = Some(current_node.clone());
-            new_node.next[level] = current_node.next[level].clone();
-            current_node.next[level] = Some(Box::new(new_node.clone()));
-            // Always decrease level.
-            level -= 1;
+        // Determine the height of the new node
+        let mut height = 0;
+        // The rand::random() is used to randomly distribute nodes at various
+        // heights in the skip list which improves performance.
+        while height < self.height && rand::random() {
+            height += 1;
         }
+
+        // Create the new node and insert it into the list
+        let mut new_node = Box::new(Node {
+            element,
+            next: vec![None; height + 1],
+            prev: vec![None; height + 1],
+        });
+
+         // Find the position where the new node should be inserted
+         let mut curr = &mut self.head;
+         let mut update = vec![self.head.clone(); self.height];
+         for i in (0..self.height).rev() {
+             while let Some(ref next) = curr.next[i] {
+                 if next.element > element {
+                     break;
+                 }
+                 curr = &mut *next;
+             }
+             update[i] = curr.clone();
+         }
+
+        // Insert the new node
+        for i in 0..=height {
+            new_node.next[i] = update[i].next[i].take();
+            update[i].next[i] = Some(new_node.clone());
+            if let Some(ref mut next) = new_node.next[i] {
+                next.prev[i] = Some(new_node.clone());
+            }
+        }
+
+        // Update the tail if necessary
+        if let Some(ref mut tail) = self.tail.prev[0] {
+            if tail.element < element {
+                self.tail = new_node;
+            }
+        }
+
+        // Update the size and height of the list
         self.size += 1;
+        self.height = self.height.max(height + 1);
     }
     
 }
