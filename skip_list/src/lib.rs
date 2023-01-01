@@ -10,6 +10,7 @@ where
     element: T,
     next: Vec<Option<Box<Node<T>>>>,
     prev: Vec<Option<Box<Node<T>>>>,
+    index: usize,
 }
 
 struct SkipList<T> 
@@ -21,6 +22,7 @@ where
   height: usize, 
   size : usize,
   max_size: usize,
+  nodes: Vec<Node<T>>,
 }
 
 impl<T> SkipList<T>
@@ -31,11 +33,12 @@ where
     fn new() -> Self {
         let default_element = T::default();
         SkipList {
-            head: Box::new(Node { element: default_element, next: vec![], prev: vec![] }),
-            tail: Box::new(Node { element: default_element, next: vec![], prev: vec![] }),
+            head: Box::new(Node { element: default_element, next: vec![], prev: vec![], index: 0}),
+            tail: Box::new(Node { element: default_element, next: vec![], prev: vec![], index: 1}),
             height: 1,
             size: 0,
             max_size: 10,
+            nodes: Vec::new(),
         }
     }
 
@@ -67,44 +70,29 @@ where
         }
 
         // Create the new node and insert it into the list
-        let mut new_node = Box::new(Node {
+        let new_node = Node {
             element,
             next: vec![None; height + 1],
             prev: vec![None; height + 1],
-        });
+            index: self.nodes.len(),
+        };
+        self.nodes.push(new_node);
+        let index = self.nodes.len() - 1;
+        let new_node = &mut self.nodes[index];
 
-         // Find the position where the new node should be inserted
-         let mut curr = &mut self.head;
-         let mut update = vec![self.head.clone(); self.height];
-         for i in (0..self.height).rev() {
-             while let Some(ref next) = curr.next[i] {
-                 if next.element > element {
-                     break;
-                 }
-                 curr = &mut *next;
-             }
-             update[i] = curr.clone();
-         }
-
-        // Insert the new node
-        for i in 0..=height {
-            new_node.next[i] = update[i].next[i].take();
-            update[i].next[i] = Some(new_node.clone());
-            if let Some(ref mut next) = new_node.next[i] {
-                next.prev[i] = Some(new_node.clone());
+        // Find the position where the new node should be inserted
+        let mut curr = 0; // Change the type of `curr` to an `usize`
+        let mut update = vec![0; self.height];
+        for i in (0..self.height).rev() {
+            while let Some(next) = self.nodes[curr].next[i] { // Use indexing instead of dereferencing
+                if self.nodes[next.index].element > element { // Use indexing instead of dereferencing
+                    break;
+                }
+                curr = next.index; // Update `curr` using an index rather than a reference
             }
+            update[i] = curr;
         }
-
-        // Update the tail if necessary
-        if let Some(ref mut tail) = self.tail.prev[0] {
-            if tail.element < element {
-                self.tail = new_node;
-            }
-        }
-
-        // Update the size and height of the list
-        self.size += 1;
-        self.height = self.height.max(height + 1);
+      
     }
     
 }
